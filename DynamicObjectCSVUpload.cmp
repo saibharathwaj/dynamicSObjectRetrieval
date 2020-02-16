@@ -1,0 +1,91 @@
+<aura:component access="global" controller="DynamicObjectRetrieval">
+    <aura:attribute name="options" 
+                    type="List" 
+                    default="[
+                             {'label': 'INSERT' , 'value':'INSERT'},
+                             {'label': 'UPDATE' , 'value':'UPDATE'},
+                             {'label': 'DELETE' , 'value':'DELETE'},
+                             {'label': 'UPSERT' , 'value':'UPSERT'}
+                             ]"/>
+    <aura:attribute name="value" type="String" default="INSERT"/>
+    <aura:attribute name="selectedOperation" type="String" default="INSERT"/>
+    <aura:attribute name="selectedRecord" type="sObject"/>
+    <aura:attribute name="listofSelectedRecord" type="sObject[]"/>
+    <aura:attribute name="searchKeyword" type="String"/>
+    <aura:attribute name="message" type="String"/>
+    <aura:handler name="oselectedsobjectEvent" 
+                  event="c:selectedsobjectEvent"
+                  action="{!c.handleCompEvent}"/>
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    <aura:attribute name="fileContentData" type="String"/>
+    <aura:attribute name="NumOfRecords" type="Integer" default="100"/>
+    <aura:attribute name="showMain" type="Boolean" default="true"/>
+    <aura:attribute name="tableContent" type="String"/>
+    <h3>Dynamic Object CSV Upload</h3>
+    <div>
+        <div class="slds-form-element">
+            <div class="slds-p-around_none">
+                <div class="slds-grid slds-grid_vertical">
+                    <lightning:radioGroup aura:id="myGroupId"
+                                          name="radioButtonGroup"
+                                          label="Operation"
+                                          options="{!v.options}"
+                                          value="{!v.value}"
+                                          onchange="{!c.handleChange}"
+                                          required="true"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slds-m-around--large">
+        <div aura:id="searchRes" 
+             class="slds-form-element slds-lookup slds-is-close" 
+             data-select="single">
+            <label class="slds-form-element__label" for="lookup-348"> Object Name </label>
+            <div class="slds-form-element__control">
+                <div class="slds-input-has-icon slds-input-has-icon--right">
+                    <div aura:id="lookup-pill" class="slds-pill-container slds-hide">
+                        <span class="slds-pill">
+                            <span class="slds-pill__label">
+                                {!v.selectedRecord}  
+                            </span>
+                            <button class="slds-button slds-button--icon slds-pill__remove" onclick="{!c.clear}">
+                                <span class="slds-assistive-text">Remove</span>
+                            </button>
+                        </span>
+                    </div>
+                    <div aura:id="lookupField" class="slds-show">
+                        <ui:inputText  updateOn="keyup" keyup="{!c.keyPressController}" class="slds-lookup__search-input slds-input " value="{!v.searchKeyword}" placeholder="search.."/>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-lookup__menu slds" id="lookup-348">
+                <div class="slds-lookup__item--label slds-text-body--small">{!v.message}</div>
+                <center> <ui:spinner aura:id="spinner"/> </center>
+                <ul class="slds-lookup__list" role="listbox">
+                    <aura:iteration items="{!v.listofSelectedRecord}" var="singleRec">
+                        <c:customLookupResult sObjectDetails="{!singleRec}" />
+                    </aura:iteration>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    {!v.selectedOperation} ---- {!v.selectedRecord}  
+    <lightning:input aura:id="fileInput"
+                     name="fileInput"
+                     type="file"
+                     label="Import"
+                     accept=".csv"
+                     onchange="{!c.handleFileChange}"/>
+    <br/>
+   
+    <ui:outputRichText class="uiOutputRichText slds-m--around-large" value="{!v.tableContent}"/>
+   
+    <br/>
+    <lightning:button variant="brand"
+                      label="Import Records"
+                      title="Import Records"
+                      onclick="{!c.databaseOperation}"/>
+</aura:component>
